@@ -488,7 +488,7 @@
 
 {% macro transcript_overview() %}
   <div class="panel panel-default fixed-panel">
-    <div class="panel-heading">Disease associated transcripts</div>
+    <div class="panel-heading">Transcripts</div>
     <div class="panel-body">
         {{ variant.disease_associated_transcripts|join(', ')
           if variant.disease_associated_transcripts else '-' }}
@@ -506,7 +506,7 @@
         {% for gene in variant.genes %}
           {% for transcript in gene.primary_transcripts %}
             {% for refseq_id in transcript.refseq_identifiers %}
-              <tr {% if transcript.is_primary %} class="bg-info" {% endif %}>
+              <tr>
                 <td>
                   <a href="{{ url_for('genes.gene', hgnc_id=gene.hgnc_id) }}">
                     {{ gene.common.hgnc_symbol if gene.common else gene.hgnc_id }}
