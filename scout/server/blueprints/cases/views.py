@@ -69,6 +69,22 @@ def case(institute_id, case_name):
     return dict(institute=institute_obj, case=case_obj, **data)
 
 
+@cases_bp.route('/<institute_id>/<case_name>/matchmaker_share', methods=['GET','POST'])
+@templated('cases/mme_share.html')
+def mme_share_case(institute_id, case_name):
+
+    data = {}
+    if request.method == 'POST':
+        flash('going to share stuff right now!')
+    else:
+        institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
+        data = {
+            'institute' : institute_obj,
+            'case' : case_obj
+        }
+    return data
+
+
 @cases_bp.route('/<institute_id>/clinvar_submissions', methods=['GET','POST'])
 @templated('cases/clinvar_submissions.html')
 def clinvar_submissions(institute_id):

@@ -119,7 +119,7 @@ def case(store, institute_obj, case_obj):
     for event in events:
         event['verb'] = VERBS_MAP[event['verb']]
 
-    case_obj['clinvar_variants'] = store.case_to_clinVars(case_obj['display_name'])
+    case_obj['clinvar_variants'] = store.case_to_clinVars(case_obj['_id'])
 
     # Phenotype groups can be specific for an institute, there are some default groups
     pheno_groups = institute_obj.get('phenotype_groups') or PHENOTYPE_GROUPS

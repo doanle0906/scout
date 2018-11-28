@@ -72,11 +72,18 @@
           <div class="col-md-6">{{ hpo_genelist_panel() }}</div>
         </div>
 
+        <!-- data sharing panel -->
         <div class="row">
-          <div class="col-md-6">{{ activity_panel(events) }}</div>
           {% if case.clinvar_variants %}
             <div class="col-md-6">{{ clinvar_panel() }}</div>
           {% endif %}
+          {% if 'mme_submitter' in current_user.roles %}
+            <div class="col-md-6">{{ matchmaker() }}</div>
+          {% endif %}
+        </div>
+
+        <div class="row">
+          <div class="col-md-12">{{ activity_panel(events) }}</div>
         </div>
       </div>
     </div>
@@ -117,7 +124,7 @@
 
 {% macro related_causatives_list() %}
   <div class="panel panel-default">
-    <div data-toggle='tooltip' class="panel-heading" title="If there are any variants in this case 
+    <div data-toggle='tooltip' class="panel-heading" title="If there are any variants in this case
       that have been marked as causative in another case for this insitute">
       Matching causatives from other cases
     </div>
@@ -239,7 +246,7 @@
 
 {% macro candidates_list() %}
   <div class="panel panel-default">
-    <div data-toggle='tooltip' class="panel-heading" title="Displays all variants that has been 
+    <div data-toggle='tooltip' class="panel-heading" title="Displays all variants that has been
                                                             marked causative for this case">
       Causative variants
     </div>
@@ -286,7 +293,7 @@
         <div class="panel-body">No variants marked causative</div>
       {% endfor %}
     </ul>
-    <div data-toggle='tooltip' class="panel-heading panel-heading-secondary" 
+    <div data-toggle='tooltip' class="panel-heading panel-heading-secondary"
          title="Displays all variants that has been pinned for this case">
       Pinned variants
     </div>
@@ -461,20 +468,38 @@
 {% macro clinvar_panel() %}
   <div class="panel panel-default">
     <div class="panel-heading">Variants in Clinvar submissions</div>
-    <ul>
-      {% for var_id, submission_data in case.clinvar_variants.items() %}
-        <li>
-          {% if submission_data.category == 'snv' %}
-            <a href="{{ url_for('variants.variant', institute_id=institute._id, case_name=case.display_name, variant_id=var_id) }}">chr{{submission_data.chromosome}}:{{submission_data.start}}_{{submission_data.ref}}>{{submission_data.alt}}</a> ({{submission_data.clinsig}})
-          {% else %}
-            <a href="{{ url_for('variants.sv_variant', institute_id=institute._id, case_name=case.display_name, variant_id=var_id) }}">chr{{submission_data.chromosome}}:{{submission_data.breakpoint1}}_{{submission_data.var_type}}</a> ({{submission_data.clinsig}})
-          {% endif %}
-        </li>
-      {% endfor %}
-    </ul>
+    <div class="panel-body">
+      <ul>
+        {% for var_id, submission_data in case.clinvar_variants.items() %}
+          <li>
+            {% if submission_data.category == 'snv' %}
+              <a href="{{ url_for('variants.variant', institute_id=institute._id, case_name=case.display_name, variant_id=var_id) }}">chr{{submission_data.chromosome}}:{{submission_data.start}}_{{submission_data.ref}}>{{submission_data.alt}}</a> ({{submission_data.clinsig}})
+            {% else %}
+              <a href="{{ url_for('variants.sv_variant', institute_id=institute._id, case_name=case.display_name, variant_id=var_id) }}">chr{{submission_data.chromosome}}:{{submission_data.breakpoint1}}_{{submission_data.var_type}}</a> ({{submission_data.clinsig}})
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 {% endmacro %}
 
+{% macro matchmaker() %}
+  <div class="panel panel-default">
+    <div class="panel-heading">Matching patients</div>
+    <div class="panel-body">
+      {% if case.matches %} <!-- case was aready submitted to MatchMaker -->
+        Case in MatchMaker
+      {% else %} <!-- display option to submit case to MatchMaker -->
+      This case is not yet in <a href="https://www.matchmakerexchange.org/" target="_blank">MatchMaker</a>.
+        <button role="button" class="btn btn-default" onclick="window.location.href='{{url_for('cases.mme_share_case', institute_id=institute._id,
+                           case_name=case.display_name)}}'">Share case
+          <span class="glyphicon glyphicon-align-bottom glyphicon-share" aria-hidden="true"/>
+        </button>
+      {% endif %}
+    </div>
+  </div>
+{% endmacro %}
 
 {% macro phenotype_groups_panel() %}
   <div class="panel panel-default">
