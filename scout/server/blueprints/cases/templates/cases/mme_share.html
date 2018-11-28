@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block title %}
+  {{ super() }} - {{ institute.display_name }} - {{ case.display_name }}
+{% endblock %}
+
+{% block top_nav %}
+  {{ super() }}
+  <li>
+    <a href="{{ url_for('cases.index') }}">Institutes</a>
+  </li>
+  <li>
+    <a href="{{ url_for('cases.case', institute_id=institute._id, case_name=case.display_name) }}">
+      {{ institute.display_name }}
+    </a>
+  </li>
+  <li >
+    <a href="{{ url_for('cases.case', case_name=case.display_name, institute_id=institute._id) }}">
+      {{case.display_name}}
+    </a>
+  </li>
+  <li class="active">
+    <span class="navbar-text">MatchMaker Case sharing</span>
+  </li>
+{% endblock %}
+
+{% block content %}
+<br>
+<div class="container" id="main">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <form id="mme_form">
+          <h3>Case {{case.display_name}}</h3>
+          You'll be sharing the following infomation:<br><br>
+          <!-- Case ID, mandatory field -->
+          <label><input type="checkbox" disabled="disabled" checked="checked"><h4 style="display: inline;">Case ID: <strong>{{case.display_name}}</strong></h4></label>
+          <div style="margin-top: 20px; width: 95%; height: 10px; border-bottom: 1px solid #e3e3e3; text-align: center; margin-bottom: 5px;"></div>
+
+          <!-- Contact info, mandatory field -->
+          <label><input type="checkbox" disabled="disabled" checked="checked"><h4 style="display: inline;"><h4 style="display: inline;">Contact information:</h4></label>
+          <br><br>
+          <!-- Contact name -->
+          <div class="form-group row">
+            <div class="col-sm-1"></div>
+            <label for="name" class="col-sm-2 col-form-label">Name</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" id="name" value="{{current_user.name}}" size="50" disabled="disabled">
+            </div>
+          </div>
+          <!-- email info -->
+          <div class="form-group row">
+            <div class="col-sm-1"></div>
+            <label for="email" class="col-sm-2 col-form-label">Email</label>
+            <div class="col-sm-8">
+              <input type="email" class="form-control" id="email" value="{{current_user.email}}" size="50" disabled="disabled">
+            </div>
+          </div>
+          <!-- Institute -->
+          <div class="form-group row">
+            <div class="col-sm-1"></div>
+            <label for="institute" class="col-sm-2 col-form-label">Institute</label>
+            <div class="col-sm-8">
+              <input type="text" class="form-control" id="institute" size="50" placeholder="Institute description (optional)">
+            </div>
+          </div>
+          <div style="margin-top: 20px; width: 95%; height: 10px; border-bottom: 1px solid #e3e3e3; text-align: center; margin-bottom: 5px;"></div>
+          <label><input type="checkbox" checked="checked"><h4 style="display: inline;"><h4 style="display: inline;">Phenotype features:</h4></label>
+          <div style="margin-top: 20px; width: 95%; height: 10px; border-bottom: 1px solid #e3e3e3; text-align: center; margin-bottom: 5px;"></div>
+          <label><input type="checkbox" checked="checked"><h4 style="display: inline;"><h4 style="display: inline;">Genotype features:</h4></label>
+        </form>
+        </div>
+  </div>
+</div>
+{% endblock %}
