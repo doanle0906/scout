@@ -292,6 +292,26 @@ def clinvar_lines(clinvar_objects, clinvar_header):
     return clinvar_lines
 
 
+
+def matchmaker_add(store, current_user, case_obj, gender=None, features=None, disorders=None, genomic_features=None):
+    """Add one or more patients from a case to MatchMaker
+
+    Args:
+        store(adapter.MongoAdapter)
+        store(dict) a scout user object (to be added as matchmaker contact)
+        case_obj(dict) a scout case object
+        gender(bool) it's True if case gender should be included in matchmaker
+        features(bool) it's True if HPO features should be included in matchmaker
+        disorders(bool) it's True if OMIM diagnoses should be included in matchmaker
+        genomic_features(str) either 'variants' or 'genes'
+
+
+    Returns:
+        mme_response(str) the response of the matchmaker server
+    """
+    
+
+
 def mt_excel_files(store, case_obj, temp_excel_dir):
     """Collect MT variants and format line of a MT variant report
     to be exported in excel format

@@ -142,6 +142,36 @@ def clinvar_submissions(institute_id):
     return data
 
 
+
+
+@cases_bp.route('/<institute_id>/<case_name>/matches', methods=['GET','POST'])
+def matchmaker_add(institute_id, case_name):
+    if request.method == 'POST':
+        flash('saving shit to matchmaker!')
+
+        #collect form input fields and check that there is either phenotype data
+        # or variants or both
+        gender = request.form.get('sex')
+        features = request.form.get('features')
+        disorders = request.form.get('disorders')
+        genomic_features = request.form.get('disorders')
+
+
+        institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
+        user_obj = store.user(current_user.email)
+
+        mme_response = controllers.matchmaker_add(store=store, current_user=user_obj, gender=gender,
+                       features=features, disorders=disorders, genomic_features=genomic_features)
+
+
+
+        flash('received from form:'+str(request.form))
+
+    return redirect(request.referrer)
+
+
+
+
 @cases_bp.route('/<institute_id>/causatives')
 @templated('cases/causatives.html')
 def causatives(institute_id):
