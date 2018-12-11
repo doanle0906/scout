@@ -15,8 +15,10 @@ from scout.constants.variant_tags import MANUAL_RANK_OPTIONS, DISMISS_VARIANT_OP
 from scout.export.variant import export_mt_variants
 from scout.server.utils import institute_and_case
 from scout.parse.clinvar import clinvar_submission_header, clinvar_submission_lines
+from scout.parse.mme import phenotype_features, omim_disorders, genomic_features
 from scout.server.blueprints.variants.controllers import variant as variant_decorator
 from scout.server.blueprints.variants.controllers import sv_variant
+from scout.update.matchmaker import mme_update
 
 STATUS_MAP = {'solved': 'bg-success', 'archived': 'bg-warning'}
 
@@ -292,24 +294,73 @@ def clinvar_lines(clinvar_objects, clinvar_header):
     return clinvar_lines
 
 
-
-def matchmaker_add(store, current_user, case_obj, gender=None, features=None, disorders=None, genomic_features=None):
+def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender=None,
+            add_features=None, add_disorders=None, genes_only=False):
     """Add one or more patients from a case to MatchMaker
 
     Args:
         store(adapter.MongoAdapter)
         store(dict) a scout user object (to be added as matchmaker contact)
         case_obj(dict) a scout case object
-        gender(bool) it's True if case gender should be included in matchmaker
-        features(bool) it's True if HPO features should be included in matchmaker
-        disorders(bool) it's True if OMIM diagnoses should be included in matchmaker
+        mme_token(str) security token for mme server
+        add_gender(bool) it's True if case gender should be included in matchmaker
+        add_features(bool) it's True if HPO features should be included in matchmaker
+        add_disorders(bool) it's True if OMIM diagnoses should be included in matchmaker
         genomic_features(str) either 'variants' or 'genes'
-
+        genes_only(bool): if True adds gene names only to MME genomic features, not variants
 
     Returns:
-        mme_response(str) the response of the matchmaker server
+        server_responses(list) a list of objectes where key is patient id and value is
+            mme server response
+
     """
-    
+    features = []
+    disorders = []
+
+    # create contact dictionary
+    contact_info = {
+        'name' : current_user['name'],
+        'href' : current_user['email'],
+        'institution' : 'Scout software user, Science For Life Laboratory, Stockholm, Sweden'
+    }
+    if add_features: # create features dictionaries
+        features = phenotype_features(case_obj)
+
+    if add_disorders: # create OMIM disorders dictionaries
+        disorders = omim_disorders(case_obj)
+
+    # send a post request and collect response for each affected individual in case
+    server_responses = []
+    for individual in case_obj.get('individuals'):
+
+        if not individual['phenotype'] == 2: # include only affected individuals
+            continue
+
+        mme_patient = {}
+        mme_patient['contact'] = contact_info
+        mme_patient['id'] = '.'.join([case_obj['_id'], individual.get('individual_id')]) # This is a required field form MME
+        mme_patient['label'] = '.'.join([case_obj['display_name'], individual.get('display_name')])
+        mme_patient['features'] = features
+        mme_patient['disorders'] = disorders
+
+        if add_gender:
+            if individual['sex'] == '1':
+                mme_patient['sex'] = 'MALE'
+            else:
+                mme_patient['sex'] = 'FEMALE'
+        # get all snv variants for this specific individual:
+        individual_variants = list(store.case_individual_snv_variants(case_obj['_id'], individual.get('display_name')))
+        # parse variants to obtain MatchMaker-like variant objects (genomic features)
+        mme_patient['genomicFeatures'] = genomic_features(store, scout_variants=individual_variants, sample_name=individual.get('display_name'), build=case_obj.get('genome_build'), genes_only=genes_only)
+
+        # send request and capture response
+        mme_response =  mme_update(matchmaker_url=mme_url, update_action='add', json_patient=mme_patient, token=mme_token)
+        server_responses.append({
+                'patient_id': mme_patient['id'],
+                'message': mme_response['message'],
+                'status_code' : mme_response['status_code']
+            })
+    return server_responses
 
 
 def mt_excel_files(store, case_obj, temp_excel_dir):

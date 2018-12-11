@@ -75,13 +75,14 @@ def omim_disorders( case_obj):
     return disorders
 
 
-def genomic_features(adapter, scout_variants, sample_name, build):
+def genomic_features(adapter, scout_variants, sample_name, build, genes_only=False):
     """Exports all scout variants into matchmaker genotype feature format
 
         Args:
             scout_variants(list): a list of scout variants
             sample_name(str): a name of a sample with the case
             build(str): genome build
+            genes_only(bool): if True only gene names are saved in genomic features
 
         Returns:
             genomic_features(list): a list of genomic feature objects that looks like this:
@@ -89,10 +90,6 @@ def genomic_features(adapter, scout_variants, sample_name, build):
               {
                 "gene": {
                   "id": "LIMS2"
-                },
-                "type": {
-                  "id": "SO:0001583",
-                  "label": "MISSENSE"
                 },
                 "variant": {
                   "alternateBases": "C",
@@ -137,15 +134,19 @@ def genomic_features(adapter, scout_variants, sample_name, build):
                 # Looks like MatchMaker Exchange API accepts only variants that hit genes :(
                 if gene_obj:
                     g_feature['gene'] = {'id': gene_obj.get('hgnc_symbol') }
-                    g_feature['variant'] = {
-                        'referenceName' : chrom,
-                        'start' : start,
-                        'end' : stop,
-                        'assembly' : build,
-                        'referenceBases' : ref,
-                        'alternateBases' : alt
-                    }
-                    g_feature['zygosity'] = zygosity
+
+                    # share gene name only and not variant
+                    if not genes_only:
+                        g_feature['variant'] = {
+                            'referenceName' : chrom,
+                            'start' : start,
+                            'end' : stop,
+                            'assembly' : build,
+                            'referenceBases' : ref,
+                            'alternateBases' : alt
+                        }
+                        g_feature['zygosity'] = zygosity
+
                     genomic_features.append(g_feature)
 
     return genomic_features

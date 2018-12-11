@@ -30,6 +30,11 @@ LOG = logging.getLogger(__name__)
     required=False,
     help='load affected patients from a scout case'
 )
+@click.option('-genes_only',
+    is_flag=True,
+    default=False,
+    help='upload gene names to matchmaker, not variants'
+)
 @click.option('-mme_url',
     type=click.STRING,
     nargs=1,
@@ -45,7 +50,7 @@ LOG = logging.getLogger(__name__)
 )
 
 @click.pass_context
-def mme_patient(context, email, json_file, case_id, token, mme_url):
+def mme_patient(context, email, json_file, case_id, genes_only, token, mme_url):
     """Load one or more patients to MatchMaker Exchange
 
         Args:
@@ -66,7 +71,7 @@ def mme_patient(context, email, json_file, case_id, token, mme_url):
     adapter = context.obj['adapter']
     user_obj = adapter.user(email=email)
     if user_obj is None:
-        LOG.info("could't find any user with email '{} in scout database!'".format('email'))
+        LOG.info("could't find any user with email '{}' in scout database!".format(email))
         context.abort()
     contact_info = {
         'name' : user_obj['name'],
@@ -113,7 +118,7 @@ def mme_patient(context, email, json_file, case_id, token, mme_url):
                 LOG.info('number of variants found for affected individual {0}: {1}'.format(case_obj['display_name'], len(individual_variants )))
 
                 # parse variants to obtain MatchMaker-like variant objects (genomic features)
-                mme_patient['genomicFeatures'] = genomic_features(adapter, scout_variants=individual_variants, sample_name=individual.get('display_name'), build=case_obj.get('genome_build'))
+                mme_patient['genomicFeatures'] = genomic_features(adapter, scout_variants=individual_variants, sample_name=individual.get('display_name'), build=case_obj.get('genome_build'), genes_only=genes_only)
 
                 if individual['sex'] == '1':
                     mme_patient['sex'] = 'MALE'
@@ -141,4 +146,4 @@ def mme_patient(context, email, json_file, case_id, token, mme_url):
             n_inserted +=1
         elif 'That patient record (specifically that ID) had already been submitted in the past' in message:
             n_updated +=1
-        LOG.info('Number of new patients in matchmaker:{0}, number of updated records:{1}, number of failed requests:{2}'.format(n_inserted, n_updated, (len(mme_patient_list)-n_succes_response) ))
+    LOG.info('Number of new patients in matchmaker:{0}, number of updated records:{1}, number of failed requests:{2}'.format(n_inserted, n_updated, (len(mme_patient_list)-n_succes_response) ))
