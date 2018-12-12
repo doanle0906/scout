@@ -149,4 +149,5 @@ def genomic_features(adapter, scout_variants, sample_name, build, genes_only=Fal
 
                     genomic_features.append(g_feature)
 
-    return genomic_features
+    # return de-duplicated list of genomic features
+    return list(set(genomic_features))
