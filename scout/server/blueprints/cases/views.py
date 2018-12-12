@@ -127,54 +127,58 @@ def clinvar_submissions(institute_id):
     return data
 
 
-@cases_bp.route('/<institute_id>/<case_name>/matches', methods=['GET','POST'])
+@cases_bp.route('/<institute_id>/<case_name>/mme_add', methods=['POST'])
 def matchmaker_add(institute_id, case_name):
-    if request.method == 'POST':
 
-        mme_save_options = ['sex', 'features', 'disorders']
-        for index, item in enumerate(mme_save_options):
-            if item in request.form:
-                mme_save_options[index] = True
-            else:
-                mme_save_options[index] = False
+    mme_save_options = ['sex', 'features', 'disorders']
+    for index, item in enumerate(mme_save_options):
+        if item in request.form:
+            mme_save_options[index] = True
+        else:
+            mme_save_options[index] = False
 
-        genomic_features = request.form.get('genomicfeatures')
+    genomic_features = request.form.get('genomicfeatures')
 
-        genes_only = True # upload to matchmaker only gene names
-        if genomic_features == 'variants':
-            genes_only = False # upload to matchmaker variants and gene names
+    genes_only = True # upload to matchmaker only gene names
+    if genomic_features == 'variants':
+        genes_only = False # upload to matchmaker variants and gene names
 
-        institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
-        user_obj = store.user(current_user.email)
-        mme_token = current_app.config.get('MME_TOKEN')
-        mme_url = current_app.config.get('MME_URL')
+    institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
+    user_obj = store.user(current_user.email)
+    mme_token = current_app.config.get('MME_TOKEN')
+    mme_url = current_app.config.get('MME_URL')
 
-        mme_result = controllers.matchmaker_add(store=store, current_user=user_obj, case_obj=case_obj, mme_token=mme_token,
-                mme_url=mme_url, add_gender=mme_save_options[0], add_features=mme_save_options[1],
-                add_disorders=mme_save_options[2], genes_only=genes_only)
+    mme_result = controllers.matchmaker_add(store=store, current_user=user_obj, case_obj=case_obj, mme_token=mme_token,
+            mme_url=mme_url, add_gender=mme_save_options[0], add_features=mme_save_options[1],
+            add_disorders=mme_save_options[2], genes_only=genes_only)
 
-        n_succes_response = 0
-        n_inserted = 0
-        n_updated = 0
-        for resp in mme_result.get('response'):
-            message = resp.get('message')
-            if resp.get('status_code') == 200:
-                n_succes_response += 1
-            else:
-                flash('an error occurred while adding patient to matchmaker: {}'.format(message), 'warning')
-            if message == 'insertion OK':
-                n_inserted +=1
-            elif 'had already been submitted in the past' in message:
-                n_updated +=1
+    n_succes_response = 0
+    n_inserted = 0
+    n_updated = 0
+    for resp in mme_result.get('response'):
+        message = resp.get('message')
+        if resp.get('status_code') == 200:
+            n_succes_response += 1
+        else:
+            flash('an error occurred while adding patient to matchmaker: {}'.format(message), 'warning')
+        if message == 'insertion OK':
+            n_inserted +=1
+        elif 'had already been submitted in the past' in message:
+            n_updated +=1
 
-        category = 'warning'
-        # if at least one patient was inserted or updates into matchmaker, save submission at the case level:
-        if n_inserted or n_updated:
-            category = 'success'
-            store.case_mme_update(case_obj=case_obj, user_obj=user_obj, mme_subm_obj=mme_result)
-        flash('Number of new patients in matchmaker:{0}, number of updated records:{1}, number of failed requests:{2}'.format(
-                n_inserted, n_updated, len(mme_result.get('response')) - n_succes_response), category)
+    category = 'warning'
+    # if at least one patient was inserted or updates into matchmaker, save submission at the case level:
+    if n_inserted or n_updated:
+        category = 'success'
+        store.case_mme_update(case_obj=case_obj, user_obj=user_obj, mme_subm_obj=mme_result)
+    flash('Number of new patients in matchmaker:{0}, number of updated records:{1}, number of failed requests:{2}'.format(
+            n_inserted, n_updated, len(mme_result.get('response')) - n_succes_response), category)
 
+    return redirect(request.referrer)
+
+@cases_bp.route('/<institute_id>/<case_name>/mme_delete', methods=['POST'])
+def matchmaker_delete(institute_id, case_name):
+    flash('delete from MMe')
     return redirect(request.referrer)
 
 

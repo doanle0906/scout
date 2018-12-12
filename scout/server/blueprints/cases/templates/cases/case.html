@@ -488,10 +488,11 @@
   <div class="panel panel-default">
     <div class="panel-heading">Matching patients</div>
     <div class="panel-body">
-      {% if case.matches %} <!-- case was aready submitted to MatchMaker -->
-        Case in MatchMaker
+      {% if case.mme_submission %} <!-- case was aready submitted to MatchMaker -->
+        <p>This case is in MatchMaker, <a href="#mme_form" data-toggle="collapse">modify or delete submission</a></p>
       {% else %} <!-- display option to submit case to MatchMaker -->
         <p>This case is not yet in MatchMaker!&nbsp;<a href="#mme_form" data-toggle="collapse">Share it now</a></p>
+      {% endif %}
         <form id="mme_submit" method="POST" action="{{ url_for('cases.matchmaker_add', institute_id=institute._id, case_name=case.display_name )}}" >
           <div id="mme_form" class="collapse">
             <div class="d-flex justify-content-between">
@@ -503,7 +504,7 @@
                         Include patient gender
                       </div>
                       <div>
-                        <input type="checkbox" class="ios8-switch" id="sex" name="sex" checked>
+                        <input type="checkbox" class="ios8-switch" id="sex" name="sex" {% if not case.mme_submission or case.mme_submission.sex %}checked{% endif %}>
                         <label for="sex"></label>
                       </div>
                     </div>
@@ -514,7 +515,7 @@
                         Include HPO terms
                       </div>
                       <div>
-                        <input type="checkbox" class="ios8-switch" id="features" name="features" checked>
+                        <input type="checkbox" class="ios8-switch" id="features" name="features" {% if not case.mme_submission or case.mme_submission.features %}checked{% endif %}>
                         <label for="features"></label>
                       </div>
                     </div>
@@ -525,7 +526,7 @@
                         Include OMIM diagnoses
                       </div>
                       <div>
-                        <input type="checkbox" class="ios8-switch" id="disorders" name="disorders" checked>
+                        <input type="checkbox" class="ios8-switch" id="disorders" name="disorders" {% if not case.mme_submission or case.mme_submission.disorders %}checked{% endif %}>
                         <label for="disorders"></label>
                       </div>
                     </div>
@@ -547,7 +548,7 @@
                         Include only gene names
                       </div>
                       <div>
-                        <input type="radio" class="ios8-switch" id="genomicfeatures" name="genomicfeatures" value="genes">
+                        <input type="radio" class="ios8-switch" id="genomicfeatures" name="genomicfeatures" value="genes" {% if case.mme_submission and case.mme_submission.genes_only %}checked{% endif %}>
                         <label for="genomicfeatures"></label>
                       </div>
                     </div>
@@ -556,11 +557,21 @@
               </div>
             </div>
             <div>
-              <button class="btn btn-default form-control" data-toggle="modal" type="submit">Share to Matchmaker</button>
+              <button class="btn btn-default form-control" data-toggle="modal" type="submit">
+                {% if case.mme_submission %}
+                  Update case in MatchMaker
+                {% else %}
+                  Share to MatchMaker
+                {% endif %}</button>
             </div>
-          </div>
         </form>
-      {% endif %}
+        {% if case.mme_submission %}
+        <form id="mme_delete" method="POST" action="{{ url_for('cases.matchmaker_delete', institute_id=institute._id, case_name=case.display_name )}}" >
+          <div>
+            <button class="btn btn-danger form-control" data-toggle="modal" type="submit">Delete case from MatchMaker</button>
+          </div>
+        {% endif %}
+        <form>
     </div>
   </div>
 {% endmacro %}

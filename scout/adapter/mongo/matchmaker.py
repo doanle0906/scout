@@ -29,7 +29,11 @@ class MMEHandler(object):
             'created' : created,
             'updated' : updated,
             'patient_id' : patients_id, # list of patients ids
-            'subm_user' : user_obj['_id'] # submitting user
+            'subm_user' : user_obj['_id'], # submitting user
+            'sex' : mme_subm_obj['sex'],
+            'features' : mme_subm_obj['features'],
+            'disorders' : mme_subm_obj['disorders'],
+            'genes_only' : mme_subm_obj['genes_only']
         }
         case_obj['mme_submission'] = mme_subm_obj
         updated_case = self.update_case(case_obj)
