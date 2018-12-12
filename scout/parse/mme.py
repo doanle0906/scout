@@ -110,6 +110,8 @@ def genomic_features(adapter, scout_variants, sample_name, build, genes_only=Fal
     else:
         build = 'GRCh'+build
 
+    gene_set = set()
+
     for variant in scout_variants:
         # take into account that a variant can hit one or several genes.
         # in this case create a MME variant object for each of the genes
@@ -133,10 +135,9 @@ def genomic_features(adapter, scout_variants, sample_name, build, genes_only=Fal
 
                 # Looks like MatchMaker Exchange API accepts only variants that hit genes :(
                 if gene_obj:
-                    g_feature['gene'] = {'id': gene_obj.get('hgnc_symbol') }
-
-                    # share gene name only and not variant
+                    # share variant and gene info
                     if not genes_only:
+                        g_feature['gene'] = {'id': gene_obj.get('hgnc_symbol') }
                         g_feature['variant'] = {
                             'referenceName' : chrom,
                             'start' : start,
@@ -146,8 +147,17 @@ def genomic_features(adapter, scout_variants, sample_name, build, genes_only=Fal
                             'alternateBases' : alt
                         }
                         g_feature['zygosity'] = zygosity
+                        genomic_features.append(g_feature)
 
-                    genomic_features.append(g_feature)
+                    else: # adding another gene to gene set (can't contain duplicate genes)
+                        gene_set.add(gene_obj.get('hgnc_symbol'))
 
-    # return de-duplicated list of genomic features
-    return list(set(genomic_features))
+    if genes_only:
+        # create de-duplicated list of genomic features
+        for gene in gene_set:
+            g_feature = {
+                'gene' : {'id': gene }
+            }
+            genomic_features.append(g_feature)
+
+    return genomic_features
