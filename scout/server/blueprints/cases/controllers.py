@@ -310,8 +310,7 @@ def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender
         genes_only(bool): if True adds gene names only to MME genomic features, not variants
 
     Returns:
-        server_responses(list) a list of objectes where key is patient id and value is
-            mme server response
+        submitted_info(dict) info submitted to MatchBox and its responses
 
     """
     features = []
@@ -331,11 +330,20 @@ def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender
 
     # send a post request and collect response for each affected individual in case
     server_responses = []
+    inserted_patients = []
+
+    submitted_info = {
+        'contact' : contact_info,
+        'sex' : add_gender,
+        'features' : features,
+        'disorders' : disorders,
+        'genes_only' : genes_only,
+    }
+
     for individual in case_obj.get('individuals'):
 
         if not individual['phenotype'] == 2: # include only affected individuals
             continue
-
         mme_patient = {}
         mme_patient['contact'] = contact_info
         mme_patient['id'] = '.'.join([case_obj['_id'], individual.get('individual_id')]) # This is a required field form MME
@@ -358,9 +366,11 @@ def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender
         server_responses.append({
                 'patient_id': mme_patient['id'],
                 'message': mme_response['message'],
-                'status_code' : mme_response['status_code']
+                'status_code' : mme_response.get('status_code') or mme_response.get('status')
             })
-    return server_responses
+
+    submitted_info['response'] = server_responses
+    return submitted_info
 
 
 def mt_excel_files(store, case_obj, temp_excel_dir):

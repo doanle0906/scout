@@ -149,15 +149,14 @@ def matchmaker_add(institute_id, case_name):
         mme_token = current_app.config.get('MME_TOKEN')
         mme_url = current_app.config.get('MME_URL')
 
-        mme_response = controllers.matchmaker_add(store=store, current_user=user_obj, case_obj=case_obj, mme_token=mme_token,
+        mme_result = controllers.matchmaker_add(store=store, current_user=user_obj, case_obj=case_obj, mme_token=mme_token,
                 mme_url=mme_url, add_gender=mme_save_options[0], add_features=mme_save_options[1],
-                add_disorders=mme_save_options[2],genes_only=genes_only)
+                add_disorders=mme_save_options[2], genes_only=genes_only)
 
         n_succes_response = 0
         n_inserted = 0
         n_updated = 0
-
-        for resp in mme_response:
+        for resp in mme_result.get('response'):
             message = resp.get('message')
             if resp.get('status_code') == 200:
                 n_succes_response += 1
@@ -168,8 +167,13 @@ def matchmaker_add(institute_id, case_name):
             elif 'had already been submitted in the past' in message:
                 n_updated +=1
 
+        category = 'warning'
+        # if at least one patient was inserted or updates into matchmaker, save submission at the case level:
+        if n_inserted or n_updated:
+            category = 'success'
+            store.case_mme_update(case_obj=case_obj, user_obj=user_obj, mme_subm_obj=mme_result)
         flash('Number of new patients in matchmaker:{0}, number of updated records:{1}, number of failed requests:{2}'.format(
-                n_inserted, n_updated, len(mme_response) - n_succes_response), 'success')
+                n_inserted, n_updated, len(mme_result.get('response')) - n_succes_response), category)
 
     return redirect(request.referrer)
 
