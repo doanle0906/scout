@@ -34,4 +34,13 @@ class MMEHandler(object):
         case_obj['mme_submission'] = mme_subm_obj
         updated_case = self.update_case(case_obj)
 
+        # create event for subjects in MatchMaker for this case
+        institute_obj = self.institute(case_obj['owner'])
+        for individual in case_obj['individuals']:
+            if individual['phenotype'] == 2: # affected
+                # create event for patient in MME
+                self.create_event(institute=institute_obj, case=case_obj, user=user_obj,
+                    link='', category='case', verb='mme_add', subject=individual['display_name'],
+                    level='specific')
+
         return updated_case

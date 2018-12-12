@@ -339,4 +339,4 @@ class EventHandler(CaseEventHandler, VariantEventHandler):
                 subject=case['display_name'],
                 content=content
             )
-        return comment
+        return comment        
