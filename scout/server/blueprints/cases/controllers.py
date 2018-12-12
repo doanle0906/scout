@@ -300,9 +300,10 @@ def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender
 
     Args:
         store(adapter.MongoAdapter)
-        store(dict) a scout user object (to be added as matchmaker contact)
+        current_user(dict) a scout user object (to be added as matchmaker contact)
         case_obj(dict) a scout case object
         mme_token(str) security token for mme server
+        mme_url(str) base url + port of a running matchmaker instance
         add_gender(bool) it's True if case gender should be included in matchmaker
         add_features(bool) it's True if HPO features should be included in matchmaker
         add_disorders(bool) it's True if OMIM diagnoses should be included in matchmaker
@@ -371,6 +372,41 @@ def matchmaker_add(store, current_user, case_obj, mme_token, mme_url, add_gender
 
     submitted_info['response'] = server_responses
     return submitted_info
+
+
+def matchmaker_delete(store, case_obj, mme_token, mme_url):
+    """Delete all affected individuals from a case from MatchMaker Express
+
+    Args:
+        store(adapter.MongoAdapter)
+        case_obj(dict) a scout case object
+        mme_token(str) security token for mme server
+        mme_url(str) base url + port of a running matchmaker instance
+
+    Returns:
+        mme_responses(dict) keys are the subject ids and values are
+                           the server response
+    """
+    delete_responses = []
+    # for each patient of the case in matchmaker
+    for mme_patient_id in case_obj['mme_submission']['patient_id']:
+        # send delete request to server and capture its response
+        resp = mme_update(matchmaker_url=mme_url, update_action='delete', json_patient=mme_patient_id,
+                token=mme_token)
+        message = ''
+        status_code = ''
+        if isinstance(resp, str):
+            message = resp
+        else:
+            message = resp.get('message')
+            status_code =  resp.get('status_code') or resp.get('status')
+
+        delete_responses.append({
+            'patient_id': mme_patient_id,
+            'message': message,
+            'status_code': status_code
+        })
+    return delete_responses
 
 
 def mt_excel_files(store, case_obj, temp_excel_dir):

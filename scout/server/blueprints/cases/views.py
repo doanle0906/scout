@@ -141,7 +141,7 @@ def matchmaker_add(institute_id, case_name):
 
     genes_only = True # upload to matchmaker only gene names
     if genomic_features == 'variants':
-        genes_only = False # upload to matchmaker variants and gene names
+        genes_only = False # upload to matchmaker both variants and gene names
 
     institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
     user_obj = store.user(current_user.email)
@@ -178,7 +178,30 @@ def matchmaker_add(institute_id, case_name):
 
 @cases_bp.route('/<institute_id>/<case_name>/mme_delete', methods=['POST'])
 def matchmaker_delete(institute_id, case_name):
-    flash('delete from MMe')
+
+    institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
+    mme_token = current_app.config.get('MME_TOKEN')
+    mme_url = current_app.config.get('MME_URL')
+    mme_responses = controllers.matchmaker_delete(store, case_obj, mme_token, mme_url)
+    n_deleted = 0
+    n_failed = 0
+    category = 'warning'
+    for resp in mme_responses:
+        if resp['status_code'] == 200:
+            n_deleted += 1
+        else:
+            flash(resp['message'], category)
+    n_failed = len(mme_responses) - n_deleted
+    if n_deleted:
+        category = 'success'
+    flash('Number of patients deleted from Matchmaker: {} out of {}'.format(n_deleted, len(mme_responses)), category)
+
+
+
+    # update case by removing mme submission
+
+    # register events
+
     return redirect(request.referrer)
 
 
