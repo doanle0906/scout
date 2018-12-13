@@ -144,7 +144,8 @@ def genomic_features(adapter, scout_variants, sample_name, build, genes_only=Fal
                             'end' : stop,
                             'assembly' : build,
                             'referenceBases' : ref,
-                            'alternateBases' : alt
+                            'alternateBases' : alt,
+                            'shareVariantLevelData' : True
                         }
                         g_feature['zygosity'] = zygosity
                         genomic_features.append(g_feature)

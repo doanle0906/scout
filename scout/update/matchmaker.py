@@ -37,7 +37,6 @@ def mme_update(matchmaker_url, update_action, json_patient, token):
         method = 'DELETE'
     try:
         LOG.info('sending HTTP request to server: {0}, data: {1}'.format(url, data))
-        appo = json.dumps(data)
         # send request and get response from server
         server_return = requests.request(
             method = method,

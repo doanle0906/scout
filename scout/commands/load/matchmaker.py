@@ -62,7 +62,7 @@ def mme_patient(context, email, json_file, case_id, genes_only, token, mme_url):
 
             mme_url(str) : URL of the matchmaker instance the patients should be saved to.
                 When this is provided the patients will be included in its database by sending a POST
-                request to the server, triggering in turn a search of the same patients over the connected nodes.
+                request to the server.
 
             genes_only(bool flag): if True only gene names will be part of genomic features of patients, not variants
 
