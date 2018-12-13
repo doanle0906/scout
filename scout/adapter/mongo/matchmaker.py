@@ -21,7 +21,7 @@ class MMEHandler(object):
         created = None
         patient_ids = []
         updated = datetime.now()
-        if 'mme_submission' in case_obj:
+        if 'mme_submission' in case_obj and case_obj['mme_submission']:
             created = case_obj['mme_submission']['created']
         else:
             created = updated

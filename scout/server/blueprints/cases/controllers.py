@@ -18,7 +18,7 @@ from scout.parse.clinvar import clinvar_submission_header, clinvar_submission_li
 from scout.parse.mme import phenotype_features, omim_disorders, genomic_features
 from scout.server.blueprints.variants.controllers import variant as variant_decorator
 from scout.server.blueprints.variants.controllers import sv_variant
-from scout.update.matchmaker import mme_update
+from scout.update.matchmaker import mme_update, mme_query
 
 STATUS_MAP = {'solved': 'bg-success', 'archived': 'bg-warning'}
 
