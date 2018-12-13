@@ -390,14 +390,15 @@ def matchmaker_delete(store, case_obj, mme_token, mme_url):
     delete_responses = []
     # for each patient of the case in matchmaker
     for mme_patient_id in case_obj['mme_submission']['patient_id']:
-        # send delete request to server and capture its response
+        # send delete request to server and capture server's response
         resp = mme_update(matchmaker_url=mme_url, update_action='delete', json_patient=mme_patient_id,
                 token=mme_token)
         message = ''
         status_code = ''
+        # server sometimes returns bad formatted json. So get response as string in these cases
         if isinstance(resp, str):
             message = resp
-        else:
+        else: # delete likely worked and server returns good formatted json response
             message = resp.get('message')
             status_code =  resp.get('status_code') or resp.get('status')
 

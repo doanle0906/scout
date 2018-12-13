@@ -15,6 +15,8 @@ class MMEHandler(object):
                 user_obj(dict): a scout user object
                 mme_subm_obj(dict): contains MME submission params and server response
 
+            Returns:
+                updated_case(dict): the updated scout case
         """
         created = None
         patient_ids = []
@@ -38,13 +40,36 @@ class MMEHandler(object):
         case_obj['mme_submission'] = mme_subm_obj
         updated_case = self.update_case(case_obj)
 
-        # create event for subjects in MatchMaker for this case
+        # create events for subjects add in MatchMaker for this case
         institute_obj = self.institute(case_obj['owner'])
         for individual in case_obj['individuals']:
             if individual['phenotype'] == 2: # affected
-                # create event for patient in MME
+                # create event for patient
                 self.create_event(institute=institute_obj, case=case_obj, user=user_obj,
                     link='', category='case', verb='mme_add', subject=individual['display_name'],
                     level='specific')
 
         return updated_case
+
+
+    def case_mme_delete(self, case_obj, user_obj):
+        """Delete a MatchMaker submission from a case record
+           and creates the related event.
+
+        Args:
+            case_obj(dict): a scout case object
+            user_obj(dict): a scout user object
+
+        Returns:
+            updated_case(dict): the updated scout case
+        """
+        institute_obj = self.institute(case_obj['owner'])
+        # create events for subjects removal from Matchmaker this case
+        for individual in case_obj['individuals']:
+            if individual['phenotype'] == 2: # affected
+                # create event for patient removal
+                self.create_event(institute=institute_obj, case=case_obj, user=user_obj,
+                    link='', category='case', verb='mme_remove', subject=individual['display_name'],
+                    level='specific')
+        case_obj['mme_submission'] = None
+        updated_case = self.update_case(case_obj)

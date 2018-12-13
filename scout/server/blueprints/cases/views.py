@@ -73,7 +73,6 @@ def case(institute_id, case_name):
 @cases_bp.route('/<institute_id>/clinvar_submissions', methods=['GET','POST'])
 @templated('cases/clinvar_submissions.html')
 def clinvar_submissions(institute_id):
-
     def generate_csv(header, lines):
         yield header + '\n'
         for line in lines: # lines have already quoted fields
@@ -129,7 +128,6 @@ def clinvar_submissions(institute_id):
 
 @cases_bp.route('/<institute_id>/<case_name>/mme_add', methods=['POST'])
 def matchmaker_add(institute_id, case_name):
-
     mme_save_options = ['sex', 'features', 'disorders']
     for index, item in enumerate(mme_save_options):
         if item in request.form:
@@ -176,9 +174,9 @@ def matchmaker_add(institute_id, case_name):
 
     return redirect(request.referrer)
 
+
 @cases_bp.route('/<institute_id>/<case_name>/mme_delete', methods=['POST'])
 def matchmaker_delete(institute_id, case_name):
-
     institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
     mme_token = current_app.config.get('MME_TOKEN')
     mme_url = current_app.config.get('MME_URL')
@@ -194,14 +192,11 @@ def matchmaker_delete(institute_id, case_name):
     n_failed = len(mme_responses) - n_deleted
     if n_deleted:
         category = 'success'
+        # update case by removing mme submission
+        # and create events for patients deletion from MME
+        user_obj = store.user(current_user.email)
+        store.case_mme_delete(case_obj=case_obj, user_obj=user_obj)
     flash('Number of patients deleted from Matchmaker: {} out of {}'.format(n_deleted, len(mme_responses)), category)
-
-
-
-    # update case by removing mme submission
-
-    # register events
-
     return redirect(request.referrer)
 
 
@@ -248,7 +243,6 @@ def case_report(institute_id, case_name):
 @cases_bp.route('/<institute_id>/<case_name>/pdf_report', methods=['GET'])
 def pdf_case_report(institute_id, case_name):
     """Download a pdf report for a case"""
-
     institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
     data = controllers.case_report_content(store, institute_obj, case_obj)
 
