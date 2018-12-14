@@ -20,6 +20,7 @@ from werkzeug.datastructures import Headers
 from dateutil.parser import parse as parse_date
 from scout.constants import CLINVAR_HEADER, CASEDATA_HEADER
 from scout.server.extensions import store, mail
+from scout.adapter.client import get_connection
 from scout.server.utils import templated, institute_and_case, user_institutes
 from . import controllers
 
@@ -198,6 +199,25 @@ def matchmaker_delete(institute_id, case_name):
         store.case_mme_delete(case_obj=case_obj, user_obj=user_obj)
     flash('Number of patients deleted from Matchmaker: {} out of {}'.format(n_deleted, len(mme_responses)), category)
     return redirect(request.referrer)
+
+
+@cases_bp.route('/<institute_id>/<case_name>/<match_type>/mme_matches', methods=['GET','POST'])
+@templated('cases/mme_manager.html')
+def matchmaker_matches(institute_id, case_name, match_type):
+    institute_obj, case_obj = institute_and_case(store, institute_id, case_name)
+
+    # get list of samples in matchmaker for this case
+    if not case_obj.get('mme_submission'):
+        flash("Couldn't find any patients submitted to MatchMaker for this case!", warning)
+        return redirect(request.referrer)
+
+    if not current_app.config['MME_URI'] or current_app.config['MME_DB_NAME']:
+        flash("Couldn't find any MME connection string in config file!", 'warning')
+
+    mme_db = get_connection(uri=current_app.config['MME_URI'])[current_app.config['MME_DB_NAME']]
+    data = {}
+    data['patient_matches'] = controllers.case_matches(mme_db, case_obj, match_type)
+    return dict(case=case_obj, type=match_type, **data)
 
 
 @cases_bp.route('/<institute_id>/causatives')

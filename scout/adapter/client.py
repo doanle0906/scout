@@ -34,6 +34,7 @@ def get_connection(host='localhost', port=27017, username=None, password=None,
 
     """
     authdb = authdb or mongodb
+    log_uri = None
     if uri is None:
         if username and password:
             uri = ("mongodb://{}:{}@{}:{}/{}"
@@ -42,7 +43,7 @@ def get_connection(host='localhost', port=27017, username=None, password=None,
                    .format(quote_plus(username), host, port, authdb))
         else:
             log_uri = uri = "mongodb://%s:%s" % (host, port)
-            
+
 
     LOG.info("Try to connect to %s" % log_uri)
     try:

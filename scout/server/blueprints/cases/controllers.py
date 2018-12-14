@@ -410,6 +410,41 @@ def matchmaker_delete(store, case_obj, mme_token, mme_url):
     return delete_responses
 
 
+def case_matches(mme_db, case_obj, match_type):
+    """Collect all patient matches present in MME database for a given patient
+
+    Args:
+        mme_db(Database): MME database (Database(MongoClient))
+        case_obj(dict): a case previously submitted to MatchMaker
+        match_type(str): 'internal' to return matches within scout patients in MME,
+                'external' to return matches found in external MME nodes
+
+    Returns:
+        matches(dict): in which key is patient ID and value is a list of
+            queries with positive patient match
+
+    """
+    matches_collection =  mme_db.externalMatchQuery
+    #get samples submitted to MME for this case
+    case_patients = case_obj['mme_submission']['patient_id']
+    matches = {}
+
+    for patient in case_patients:
+        query = {
+            'incomingQuery._id' : patient,
+            'matchFound' : True # return just positive matches
+        }
+        if match_type == 'internal':
+            query['institution'] = 'Clinical Genomics, SciLifeLab, Stockholm.'
+        # all queries with matches for this patient
+        matching_queries = list(matches_collection.find(query))
+        matches[patient] = matching_queries
+
+    return matches
+
+
+
+
 def mt_excel_files(store, case_obj, temp_excel_dir):
     """Collect MT variants and format line of a MT variant report
     to be exported in excel format

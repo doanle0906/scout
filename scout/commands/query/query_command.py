@@ -173,9 +173,9 @@ def matchmaker(context, case_id, patient, email, token, mme_url, external, genes
         LOG.info('Matchmaker server was successfully contacted')
         matches = server_response.get('results')
 
-        for n, match in enumerate(matches):
+        for n, match in enumerate(matches,1):
             LOG.info('result {} ----------> {}'.format(n, match))
-            
+
 
 @click.group()
 @click.pass_context

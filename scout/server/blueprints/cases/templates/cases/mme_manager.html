@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+	{% block css %}
+	<!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	{% endblock %}
+
+</head>
+
+<body>
+	<div class="container">
+		<p><h6><strong>Case {{case.display_name}}, {{type}} matches by patient</strong></h6></p>
+		{% for patient, matches in patient_matches.items() %}
+      <div class="card">
+        <div class="card-header">Patient {{patient}}</div>
+        <div class="card-body">
+          <ul class="list-group">
+            {% for match in matches|sort(attribute='timeStamp') %}
+                <li class="list-group-item">
+                  <p>{{type|upper}} query executed on: {{match.timeStamp.strftime("%Y-%m-%d - %H:%M:%S")}} by <strong>{{match.incomingQuery.contact.name}} ({{match.incomingQuery.contact.href}})</strong>
+                  for this patient returned {{match.results|length}} results:</p>
+                  <ul class="list-group">
+                  {% for result in match.results %}
+                    <li class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <strong>{{result.patient.label}}</strong>
+                        <div>
+                          <span class="badge badge-primary badge-pill">Score:{{result.score.patient|round(4)}}</span>
+                          <span class="badge badge-info badge-pill">gtype_score:{{result.score._genotypeScore|round(4)}}</span>
+                          <span class="badge badge-secondary badge-pill">pheno_score:{{result.score._phenotypeScore|round(4)}}</span>
+                        </div>
+                      </div>
+                      <div>
+                        Case name : <strong>{{ result.patient.label.split('.')[0] }}</strong><br>
+                        Patient name: <strong>{{ result.patient.label.split('.')[1] }}</strong><br>
+                        Sex: <strong>{{result.patient.sex}}</strong><br>
+                        Contact info: <strong>{{ result.patient.contact }}</strong><br><br>
+                        Phenotype features: {{result.patient.features}}<br><br>
+                        Diagnoses: <strong>{{ result.patient.disorders }}</strong><br><br>
+                        Genotype features: {{ result.patient.genomicFeatures }}
+                      </div>
+                    </li>
+                  {% endfor %}
+                  </ul>
+                </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+		{% endfor %}
+  </div>
+</body>
+</html>
