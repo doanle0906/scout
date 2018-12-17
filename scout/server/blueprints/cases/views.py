@@ -211,8 +211,9 @@ def matchmaker_matches(institute_id, case_name, match_type):
         flash("Couldn't find any patients submitted to MatchMaker for this case!", warning)
         return redirect(request.referrer)
 
-    if not current_app.config['MME_URI'] or current_app.config['MME_DB_NAME']:
-        flash("Couldn't find any MME connection string in config file!", 'warning')
+    if not current_app.config.get('MME_URI') or not current_app.config.get('MME_DB_NAME'):
+        flash("Couldn't find any connection parameter for MME in config file!", 'warning')
+        return redirect(request.referrer)
 
     mme_db = get_connection(uri=current_app.config['MME_URI'])[current_app.config['MME_DB_NAME']]
     data = {}
