@@ -27,8 +27,8 @@ except ImportError:
     logger.info('chanjo report not installed!')
 
 from . import extensions
-from .blueprints import (alignviewers, public, genes, cases, login, variants, panels, dashboard, 
-                         api, phenotypes, institutes)
+from .blueprints import (alignviewers, public, genes, cases, login, variants, panels, dashboard,
+                         api, phenotypes, institutes, matchmaker)
 
 
 def create_app(config_file=None, config=None):
@@ -102,6 +102,7 @@ def register_blueprints(app):
     app.register_blueprint(alignviewers.alignviewers_bp)
     app.register_blueprint(phenotypes.hpo_bp)
     app.register_blueprint(institutes.overview)
+    app.register_blueprint(matchmaker.mme_bp)
 
 
 def register_filters(app):
