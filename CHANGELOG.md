@@ -6,7 +6,8 @@ About changelog [here](https://keepachangelog.com/en/1.0.0/)
 
 ## [4.x.x]
 
-Add new stuff here
+### Added
+- Different individual table for cancer cases
 
 ### Fixed
 - Visualization of PDF-exported gene panels
